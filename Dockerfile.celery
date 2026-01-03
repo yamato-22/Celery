@@ -1,0 +1,18 @@
+FROM python:3.10
+
+# Копируем приложение
+COPY . /app
+WORKDIR /app
+
+RUN apt update && apt install -y build-essential gcc clang clang-tools libgl1 python3-dev cppcheck valgrind afl++ \
+     gcc-multilib
+
+# Копируем наши зависимости
+# COPY ./requirements.txt /requirements.txt
+
+# Устанавливаем требуемые пакеты
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+
+ENTRYPOINT bash run_celery.sh
