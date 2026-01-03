@@ -19,4 +19,5 @@ media/
 static/
 
 # Исключаем графические файлы
-*.png
+app/process_files
+app/upload_files
