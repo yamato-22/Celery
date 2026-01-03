@@ -1,4 +1,3 @@
-#FROM python:3.10
 FROM python:3.10-slim
 
 RUN apt update && apt install -y build-essential gcc clang clang-tools libgl1 python3-dev cppcheck valgrind afl++ \
