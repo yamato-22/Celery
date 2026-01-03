@@ -17,7 +17,3 @@ venv/
 # Исключаем статические и медиа файлы
 media/
 static/
-
-# Исключаем графические файлы
-app/process_files
-app/upload_files
