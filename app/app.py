@@ -38,7 +38,7 @@ class UpscaleImage(MethodView):
 
         image = request.files['image']
         ext = image.filename.rsplit('.', 1)[1].lower()
-        if ext not in ['jpg', 'jpeg', 'png']:
+        if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
             return jsonify({"error": "Неверный формат изображения"}), 400
 
         original_filename = f"{uuid.uuid4()}.{ext}"
