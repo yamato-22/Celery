@@ -17,3 +17,7 @@ venv/
 # Исключаем статические и медиа файлы
 media/
 static/
+
+# Исключаем промежуточные папки
+app/upload_files/
+app/process_files/
