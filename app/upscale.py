@@ -34,7 +34,7 @@ def upscale(input_path: str, output_path: str) -> None:
     cv2.imwrite(output_path, result)
 
 
-def upscale2(input_data: bytes, output_format=".jpg") -> bytes:
+def upscale2(input_data: bytes, ext="jpg") -> bytes:
     """
     Апскейлинг изображения без записи на диск.
 
@@ -55,7 +55,7 @@ def upscale2(input_data: bytes, output_format=".jpg") -> bytes:
     result = scaler.upsample(image)
 
     # Кодируем результат обратно в поток байтов
-    success, encoded_result = cv2.imencode(output_format, result)
+    success, encoded_result = cv2.imencode(f".{ext}", result)
     if not success:
         raise ValueError(f"Ошибка кодирования изображения")
 

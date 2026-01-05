@@ -31,19 +31,39 @@ class UpscaleImage(MethodView):
         return jsonify({'status': task.status,
                         'result': task.result})
 
+    # def post(self):
+    #     """Загружает изображение и ставит задачу на апскейлинг"""
+    #     if 'image' not in request.files:
+    #         return jsonify({"error": "Отсутствует изображение"}), 400
+    #
+    #     image = request.files['image']
+    #     ext = image.filename.rsplit('.', 1)[1].lower()
+    #     if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
+    #         return jsonify({"error": "Неверный формат изображения"}), 400
+    #
+    #     original_filename = f"{uuid.uuid4()}.{ext}"
+    #     image_path = os.path.join(UPLOAD_FOLDER, original_filename)
+    #     image.save(image_path)
+    #
+    #     task = upscale_image.delay(image_path)
+    #     return jsonify({"task_id": task.id, "upscale_file": task.result}), 202
+
     def post(self):
         """Загружает изображение и ставит задачу на апскейлинг"""
         if 'image' not in request.files:
             return jsonify({"error": "Отсутствует изображение"}), 400
 
-        image = request.files['image']
-        ext = image.filename.rsplit('.', 1)[1].lower()
+        input_file = request.files['image']
+        ext = input_file.filename.rsplit('.', 1)[1].lower()
         if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
             return jsonify({"error": "Неверный формат изображения"}), 400
 
-        original_filename = f"{uuid.uuid4()}.{ext}"
-        image_path = os.path.join(UPLOAD_FOLDER, original_filename)
-        image.save(image_path)
+        image = input_file.read()  # Читаем содержимое файла сразу в память
+        try:
+            task = upscale_image.delay(image)  # Запускаем задачу в Celery
+            return jsonify({"task_id": task.id, "status": "processing"}), 202
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
         task = upscale_image.delay(image_path)
         return jsonify({"task_id": task.id, "upscale_file": task.result}), 202
