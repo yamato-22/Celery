@@ -1,6 +1,7 @@
 import cv2
 from cv2 import dnn_superres
-from app.config import MODEL_PATH
+import numpy as np
+from config import MODEL_PATH
 
 # Глобальная переменная для хранения экземпляра модели
 scaler = None
@@ -31,3 +32,32 @@ def upscale(input_path: str, output_path: str) -> None:
     image = cv2.imread(input_path)
     result = scaler.upsample(image)
     cv2.imwrite(output_path, result)
+
+
+def upscale2(input_data: bytes, output_format=".jpg") -> bytes:
+    """
+    Апскейлинг изображения без записи на диск.
+
+    :param input_data: Входящие бинарные данные изображения
+    :param output_format: Формат вывода (.jpg, .png и др.)
+    :return: Бинарные данные результата
+    """
+    # Преобразуем бинарные данные в массив NumPy
+    nparray = np.frombuffer(input_data, dtype=np.uint8)
+    # Декодируем изображение из потока байтов
+    image = cv2.imdecode(nparray, flags=cv2.IMREAD_COLOR)
+
+    # Инициализация модели, если ещё не сделана
+    if scaler is None:
+        initialize_scaler()
+
+    # Масштабирование изображения
+    result = scaler.upsample(image)
+
+    # Кодируем результат обратно в поток байтов
+    success, encoded_result = cv2.imencode(output_format, result)
+    if not success:
+        raise ValueError(f"Ошибка кодирования изображения")
+
+    # Возвращаем результат в виде байтового потока
+    return encoded_result.tobytes()
