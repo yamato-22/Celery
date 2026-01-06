@@ -1,7 +1,7 @@
 from celery import Celery
 from celery.result import AsyncResult
 from upscale import upscale
-from config import BROKER, BACKEND, PROCESS_FOLDER
+from config import BROKER, BACKEND
 
 celery_app = Celery("celery_app", backend=BACKEND, broker=BROKER)
 

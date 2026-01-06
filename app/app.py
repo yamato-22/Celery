@@ -7,7 +7,7 @@ from flask.views import MethodView
 from flask import jsonify
 from flask import send_file
 from celery_app import celery_app, get_task, upscale_image
-from config import UPLOAD_FOLDER, PROCESS_FOLDER
+from config import OUTPUT_FOLDER
 from io import BytesIO
 import base64
 
@@ -41,22 +41,6 @@ class UpscaleImage(MethodView):
         return jsonify({'status': task.status,
                         'result': result})
 
-    # def post(self):
-    #     """Загружает изображение и ставит задачу на апскейлинг"""
-    #     if 'image' not in request.files:
-    #         return jsonify({"error": "Отсутствует изображение"}), 400
-    #
-    #     image = request.files['image']
-    #     ext = image.filename.rsplit('.', 1)[1].lower()
-    #     if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
-    #         return jsonify({"error": "Неверный формат изображения"}), 400
-    #
-    #     original_filename = f"{uuid.uuid4()}.{ext}"
-    #     image_path = os.path.join(UPLOAD_FOLDER, original_filename)
-    #     image.save(image_path)
-    #
-    #     task = upscale_image.delay(image_path)
-    #     return jsonify({"task_id": task.id, "upscale_file": task.result}), 202
 
     def post(self):
         """
@@ -82,6 +66,7 @@ class UpscaleImage(MethodView):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+
 class GetImage(MethodView):
 
     def get(self, filename):
@@ -89,7 +74,7 @@ class GetImage(MethodView):
         Возвращает готовое апскейлированное изображение
         """
 
-        processed_path = os.path.join(PROCESS_FOLDER, filename)
+        processed_path = os.path.join(OUTPUT_FOLDER, filename)
         print(processed_path)
         if os.path.exists(processed_path):
             return send_file(processed_path, mimetype='image/jpeg')
