@@ -10,7 +10,7 @@ scaler = None
 
 def initialize_scaler(model_path = MODEL_PATH):
     """
-    # Загружаем модель и скейлер
+    Загружаем модель и скейлер
     """
     global scaler
 
@@ -19,32 +19,18 @@ def initialize_scaler(model_path = MODEL_PATH):
         scaler.readModel(model_path)
         scaler.setModel("edsr", 2)
 
-
-def upscale(input_path: str, output_path: str) -> None:
-    """
-    :param input_path: путь к изображению для апскейла
-    :param output_path: путь к выходному файлу
-    :return:
-    """
-    # Проверяем, была ли модель уже инициализирована
-    if scaler is None:
-        initialize_scaler()
-
-    image = cv2.imread(input_path)
-    result = scaler.upsample(image)
-    cv2.imwrite(output_path, result)
-
-
-def upscale2(input_data: bytes, ext="jpg"):
+def upscale(input_data: bytes, ext="jpg"):
     """
     Апскейлинг изображения без записи на диск.
 
     :param input_data: Входящие бинарные данные изображения
-    :param output_format: Формат вывода (.jpg, .png и др.)
+    :param ext: Формат вывода (.jpg, .png и др.)
     :return: Бинарные данные результата
     """
+
     # Преобразуем бинарные данные в массив NumPy
     nparray = np.frombuffer(input_data, dtype=np.uint8)
+
     # Декодируем изображение из потока байтов
     image = cv2.imdecode(nparray, flags=cv2.IMREAD_COLOR)
 
@@ -55,15 +41,10 @@ def upscale2(input_data: bytes, ext="jpg"):
     # Масштабирование изображения
     processed_image = scaler.upsample(image)
 
-
-
-    # # Преобразуем обработанное изображение обратно в байты
+    # Преобразуем обработанное изображение обратно в бинарные данные
     success, encoded_result = cv2.imencode(f".{ext}", processed_image)
     if not success:
         raise ValueError(f"Ошибка кодирования изображения")
 
-    # Сохраняем изображение
-    cv2.imwrite("files/test600px.jpg", encoded_result)
-
-    # Возвращаем обработанное изображение в виде base64
+    # Возвращаем обработанное изображение в виде bytes
     return encoded_result.tobytes()

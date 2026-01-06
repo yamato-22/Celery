@@ -30,30 +30,16 @@ class UpscaleImage(MethodView):
 
     def get(self, task_id):
         task = get_task(task_id)
-        #
         result = task.result or b''
 
         # Конвертирование в Base64
-        # результат декодируется в строку с использованием кодировки utf-8,
-        # чтобы его можно было вернуть в JSON.
+        # результат работы задачи в Celery декодируется в строку
+        # с использованием кодировки utf-8, чтобы его можно было вернуть в JSON.
         if isinstance(result, bytes):
             result = base64.b64encode(result).decode('utf-8')
 
         return jsonify({'status': task.status,
                         'result': result})
-
-        def get_task_status(task_id):
-            task = AsyncResult(task_id)
-            result = task.result or b''
-
-            # Конвертирование в Base64
-            if isinstance(result, bytes):
-                result = base64.b64encode(result).decode('utf-8')
-
-            return jsonify({
-                'status': task.status,
-                'result': result
-            })
 
     # def post(self):
     #     """Загружает изображение и ставит задачу на апскейлинг"""
@@ -73,7 +59,10 @@ class UpscaleImage(MethodView):
     #     return jsonify({"task_id": task.id, "upscale_file": task.result}), 202
 
     def post(self):
-        """Загружает изображение и ставит задачу на апскейлинг"""
+        """
+        Загружает изображение и ставит задачу на апскейлинг в Celery
+        """
+
         if 'image' not in request.files:
             return jsonify({"error": "Отсутствует изображение"}), 400
 
@@ -82,9 +71,8 @@ class UpscaleImage(MethodView):
         if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
             return jsonify({"error": "Неверный формат изображения"}), 400
 
-        # Читаем содержимое файла сразу в память
         in_memory_file = BytesIO()
-        image.save(in_memory_file)
+        image.save(in_memory_file) # Читаем содержимое файла сразу в память
         in_memory_file.seek(0)  # Сброс указателя в начало файла
         image_data = in_memory_file.read()  # Чтение данных из BytesIO
 
@@ -94,13 +82,13 @@ class UpscaleImage(MethodView):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-        task = upscale_image.delay(image_path)
-        return jsonify({"task_id": task.id, "upscale_file": task.result}), 202
-
 class GetImage(MethodView):
 
     def get(self, filename):
-        """Возвращает готовое апскейлированное изображение"""
+        """
+        Возвращает готовое апскейлированное изображение
+        """
+
         processed_path = os.path.join(PROCESS_FOLDER, filename)
         print(processed_path)
         if os.path.exists(processed_path):

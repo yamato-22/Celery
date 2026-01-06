@@ -25,25 +25,16 @@ while status not in {"SUCCESS", "FAILURE"}:
     print(f'WAIT... {status}')
 
 print(f'{status=}')
-# print(response.json())
 
 # Сохраняем преобразованный файл
 if response.status_code == 200:
-    # Предположим, что изображение хранится в JSON как строка Base64
+    # Получаем изображение из JSON как строку Base64
     base64_string = response.json()['result']
     # Декодируем Base64 строку в байты
     image_bytes = base64.b64decode(base64_string)
-    # Сохраняем байты в файл
+    # Сохраняем байтовую строку в файл
     with open(f"{IMAGES_FOLDER}lama_600px.png", 'wb') as file:
         file.write(image_bytes)
     print("Изображение успешно сохранено!")
 else:
     print("Ошибка при загрузке изображения.")
-
-
-# # Получаем преобразованный файл
-# response = requests.get(f"{BASE_URL}/processed/{result}")
-# print(response.status_code)
-# if response.status_code == 200:
-#     with open(f"{IMAGES_FOLDER}lama_600px.png", 'wb') as f:
-#         f.write(response.content)
