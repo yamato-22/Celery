@@ -1,13 +1,8 @@
-import uuid
-import os
-
 from flask import Flask
 from flask import request
 from flask.views import MethodView
 from flask import jsonify
-from flask import send_file
 from celery_app import celery_app, get_task, upscale_image
-from config import OUTPUT_FOLDER
 from io import BytesIO
 import base64
 
@@ -66,27 +61,8 @@ class UpscaleImage(MethodView):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-
-class GetImage(MethodView):
-
-    def get(self, filename):
-        """
-        Возвращает готовое апскейлированное изображение
-        """
-
-        processed_path = os.path.join(OUTPUT_FOLDER, filename)
-        print(processed_path)
-        if os.path.exists(processed_path):
-            return send_file(processed_path, mimetype='image/jpeg')
-        else:
-            return jsonify({'message': 'Processed image not found.'}), 404
-
 app.add_url_rule('/task/<string:task_id>',
                  view_func=UpscaleImage.as_view('task_status'),
-                 methods=['GET']
-                 )
-app.add_url_rule('/processed/<string:filename>',
-                 view_func=GetImage.as_view('processed_image'),
                  methods=['GET']
                  )
 app.add_url_rule('/upscale/',

@@ -19,5 +19,5 @@ media/
 static/
 
 # Исключаем промежуточные папки
-app/upload_files/
-app/process_files/
+app/input_images/
+app/processed_images/
