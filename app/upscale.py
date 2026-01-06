@@ -1,6 +1,7 @@
 import cv2
 from cv2 import dnn_superres
 import numpy as np
+import base64
 from config import MODEL_PATH
 
 # Глобальная переменная для хранения экземпляра модели
@@ -11,8 +12,8 @@ def initialize_scaler(model_path = MODEL_PATH):
     """
     # Загружаем модель и скейлер
     """
-
     global scaler
+
     if scaler is None:
         scaler = dnn_superres.DnnSuperResImpl_create()
         scaler.readModel(model_path)
@@ -34,7 +35,7 @@ def upscale(input_path: str, output_path: str) -> None:
     cv2.imwrite(output_path, result)
 
 
-def upscale2(input_data: bytes, ext="jpg") -> bytes:
+def upscale2(input_data: bytes, ext="jpg"):
     """
     Апскейлинг изображения без записи на диск.
 
@@ -52,12 +53,17 @@ def upscale2(input_data: bytes, ext="jpg") -> bytes:
         initialize_scaler()
 
     # Масштабирование изображения
-    result = scaler.upsample(image)
+    processed_image = scaler.upsample(image)
 
-    # Кодируем результат обратно в поток байтов
-    success, encoded_result = cv2.imencode(f".{ext}", result)
+
+
+    # # Преобразуем обработанное изображение обратно в байты
+    success, encoded_result = cv2.imencode(f".{ext}", processed_image)
     if not success:
         raise ValueError(f"Ошибка кодирования изображения")
 
-    # Возвращаем результат в виде байтового потока
+    # Сохраняем изображение
+    cv2.imwrite("files/test600px.jpg", encoded_result)
+
+    # Возвращаем обработанное изображение в виде base64
     return encoded_result.tobytes()

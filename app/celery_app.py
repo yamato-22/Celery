@@ -22,7 +22,6 @@ def get_task(task_id: str) -> AsyncResult:
 
 @celery_app.task
 def upscale_image(image: bytes, ext: str):
-    # ext = image_path.rsplit('.', 1)[1].lower()
     # new_filename = f"{uuid.uuid4()}_upscaled.{ext}"
     # new_file_path = os.path.join(PROCESS_FOLDER, new_filename)
     result = upscale2(image, ext)

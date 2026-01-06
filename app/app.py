@@ -8,6 +8,8 @@ from flask import jsonify
 from flask import send_file
 from celery_app import celery_app, get_task, upscale_image
 from config import UPLOAD_FOLDER, PROCESS_FOLDER
+from io import BytesIO
+import base64
 
 app = Flask('app')
 
@@ -28,8 +30,30 @@ class UpscaleImage(MethodView):
 
     def get(self, task_id):
         task = get_task(task_id)
+        #
+        result = task.result or b''
+
+        # Конвертирование в Base64
+        # результат декодируется в строку с использованием кодировки utf-8,
+        # чтобы его можно было вернуть в JSON.
+        if isinstance(result, bytes):
+            result = base64.b64encode(result).decode('utf-8')
+
         return jsonify({'status': task.status,
-                        'result': task.result})
+                        'result': result})
+
+        def get_task_status(task_id):
+            task = AsyncResult(task_id)
+            result = task.result or b''
+
+            # Конвертирование в Base64
+            if isinstance(result, bytes):
+                result = base64.b64encode(result).decode('utf-8')
+
+            return jsonify({
+                'status': task.status,
+                'result': result
+            })
 
     # def post(self):
     #     """Загружает изображение и ставит задачу на апскейлинг"""
@@ -53,14 +77,19 @@ class UpscaleImage(MethodView):
         if 'image' not in request.files:
             return jsonify({"error": "Отсутствует изображение"}), 400
 
-        input_file = request.files['image']
-        ext = input_file.filename.rsplit('.', 1)[1].lower()
+        image = request.files['image']
+        ext = image.filename.rsplit('.', 1)[1].lower()
         if ext not in ['jpg', 'jpeg', 'png', 'bmp', 'tiff']:
             return jsonify({"error": "Неверный формат изображения"}), 400
 
-        image = input_file.read()  # Читаем содержимое файла сразу в память
+        # Читаем содержимое файла сразу в память
+        in_memory_file = BytesIO()
+        image.save(in_memory_file)
+        in_memory_file.seek(0)  # Сброс указателя в начало файла
+        image_data = in_memory_file.read()  # Чтение данных из BytesIO
+
         try:
-            task = upscale_image.delay(image)  # Запускаем задачу в Celery
+            task = upscale_image.delay(image_data, ext)  # Запускаем задачу в Celery
             return jsonify({"task_id": task.id, "status": "processing"}), 202
         except Exception as e:
             return jsonify({"error": str(e)}), 500
