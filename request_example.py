@@ -4,7 +4,7 @@ import base64
 from app.config import INPUT_FOLDER, OUTPUT_FOLDER
 
 BASE_URL = "http://127.0.0.1:5000"
-image_filename='lama_300px.png'
+image_filename='cat_500px.jpg'
 
 def save_image(filename: str, image_data: bytes):
     image_bytes = base64.b64decode(image_data)
@@ -21,7 +21,6 @@ with open(f"{INPUT_FOLDER}{image_filename}", 'rb') as image:
         })
     task_id = response.json()['task_id']
     print("Поставили задачу в Celery на выполнение")
-    # print(f'{task_id=}')
 
 # Ждем завершения обработки нашего файла
 status = "WAIT..."
