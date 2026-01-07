@@ -37,11 +37,12 @@ if response.status_code == 200:
     print("Изображение успешно обработано, сохраняем...")
 
     link = response.json()['url']
+    print(f"{link=}")
     ext = image_filename.rsplit('.', 1)[1].lower()
     new_filename = f'{image_filename.split('.')[0]}_upscaled.{ext}'
 
     # Получаем преобразованный файл
-    response = requests.get(link)
+    response = requests.get(f"{BASE_URL}link")
     print(response.status_code)
     if response.status_code == 200:
 
