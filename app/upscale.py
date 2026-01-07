@@ -3,6 +3,8 @@ from cv2 import dnn_superres
 import numpy as np
 import base64
 from config import MODEL_PATH
+import uuid
+import os
 
 # Глобальная переменная для хранения экземпляра модели
 scaler = None
@@ -41,10 +43,17 @@ def upscale(input_data: bytes, ext="jpg"):
     # Масштабирование изображения
     processed_image = scaler.upsample(image)
 
-    # Преобразуем обработанное изображение обратно в бинарные данные
-    success, encoded_result = cv2.imencode(f".{ext}", processed_image)
-    if not success:
-        raise ValueError(f"Ошибка кодирования изображения")
+    original_filename = f"{uuid.uuid4()}.{ext}"
+    image_path = os.path.join(app.config['PROCESSED_FOLDER'], original_filename)
 
-    # Возвращаем обработанное изображение в виде bytes
-    return encoded_result.tobytes()
+    cv2.imwrite(image_path, processed_image)
+
+    return original_filename
+
+    # # Преобразуем обработанное изображение обратно в бинарные данные
+    # success, encoded_result = cv2.imencode(f".{ext}", processed_image)
+    # if not success:
+    #     raise ValueError(f"Ошибка кодирования изображения")
+    #
+    # # Возвращаем обработанное изображение в виде bytes
+    # return encoded_result.tobytes()

@@ -26,7 +26,7 @@ with open(f"{INPUT_FOLDER}{image_filename}", 'rb') as image:
 status = "WAIT..."
 while status not in {"SUCCESS", "FAILURE"}:
     time.sleep(1.0)
-    response = requests.get(f"{BASE_URL}/task/{task_id}")
+    response = requests.get(f"{BASE_URL}/tasks/{task_id}")
     status = response.json()["status"]
     print(f'WAIT... {status}')
 
