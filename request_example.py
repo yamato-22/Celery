@@ -3,7 +3,7 @@ import time
 from app.config import INPUT_FOLDER, OUTPUT_FOLDER
 
 BASE_URL = "http://127.0.0.1:5000"
-image_filename = 'lama_300px.png'
+image_filename = 'cat_500px.jpg'
 
 # Передаем файл на обработку в POST запрос
 with open(f"{INPUT_FOLDER}{image_filename}", 'rb') as image:
@@ -28,16 +28,15 @@ if response.status_code == 200:
     print("Изображение успешно обработано, сохраняем...")
 
     link = response.json()['url']
-    print(f"{link=}")
     ext = image_filename.rsplit('.', 1)[1].lower()
     new_filename = f'{image_filename.split('.')[0]}_upscaled.{ext}'
 
     # Получаем преобразованный файл
     response = requests.get(f"{BASE_URL}{link}")
-    print(response.status_code)
     if response.status_code == 200:
-
         with open(f'{OUTPUT_FOLDER}{new_filename}', 'wb') as f:
             f.write(response.content)
-
         print("Обработанное изображение сохранено!")
+    else:
+        print(f'{response.status_code=}')
+        print(response.json()['message'])
