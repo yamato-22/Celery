@@ -20,4 +20,5 @@ static/
 
 # Исключаем промежуточные папки
 app/input_images/
+app/output_images/
 app/processed_images/

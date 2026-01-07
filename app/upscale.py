@@ -1,19 +1,22 @@
+import uuid
+import os
 import cv2
 from cv2 import dnn_superres
 import numpy as np
-import base64
 from config import MODEL_PATH, PROCESSED_FOLDER
-import uuid
-import os
+
 
 # Глобальная переменная для хранения экземпляра модели
 scaler = None
 
 
-def initialize_scaler(model_path = MODEL_PATH):
+def initialize_scaler(model_path=MODEL_PATH):
     """
-    Загружаем модель и скейлер
+    Функция обеспечивает однократную инициализацию модели EDSR
+
+    :param model_path: путь к файлу модели
     """
+
     global scaler
 
     if scaler is None:
@@ -21,13 +24,14 @@ def initialize_scaler(model_path = MODEL_PATH):
         scaler.readModel(model_path)
         scaler.setModel("edsr", 2)
 
+
 def upscale(input_data: bytes, ext="jpg"):
     """
     Апскейлинг изображения без записи на диск.
 
     :param input_data: Входящие бинарные данные изображения
     :param ext: Формат вывода (.jpg, .png и др.)
-    :return: Бинарные данные результата
+    :return: Имя файла полученного изображения
     """
 
     # Преобразуем бинарные данные в массив NumPy
@@ -43,17 +47,9 @@ def upscale(input_data: bytes, ext="jpg"):
     # Масштабирование изображения
     processed_image = scaler.upsample(image)
 
+    # Сохранение обработанного изображения
     original_filename = f"{uuid.uuid4()}.{ext}"
     image_path = os.path.join(PROCESSED_FOLDER, original_filename)
-
     cv2.imwrite(image_path, processed_image)
 
     return original_filename
-
-    # # Преобразуем обработанное изображение обратно в бинарные данные
-    # success, encoded_result = cv2.imencode(f".{ext}", processed_image)
-    # if not success:
-    #     raise ValueError(f"Ошибка кодирования изображения")
-    #
-    # # Возвращаем обработанное изображение в виде bytes
-    # return encoded_result.tobytes()

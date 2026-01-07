@@ -7,9 +7,9 @@ from flask import send_from_directory
 from celery_app import celery_app, get_task, upscale_image
 from io import BytesIO
 from config import PROCESSED_FOLDER
-import base64
 
 app = Flask('app')
+
 
 class ContextTask(celery_app.Task):
     """
@@ -21,19 +21,23 @@ class ContextTask(celery_app.Task):
         with app.app_context():
             return self.run(*args, **kwargs)
 
+
 celery_app.Task = ContextTask
+
 
 class GetImage(MethodView):
 
     def get(self, filename):
         """
         Возвращает готовое апскейлированное изображение
+        :param filename: Имя файла апскейлированного изображения
         """
 
         processed_path = os.path.join(PROCESSED_FOLDER, filename)
-        # print(processed_path)
         if os.path.exists(processed_path):
-            return send_from_directory(PROCESSED_FOLDER, filename, as_attachment=True)
+            return send_from_directory(PROCESSED_FOLDER, filename,
+                                       as_attachment=True
+                                       )
         else:
             return jsonify({'message': 'Processed image not found.'}), 404
 
@@ -41,24 +45,18 @@ class GetImage(MethodView):
 class UpscaleImage(MethodView):
 
     def get(self, task_id):
+        """
+        Получает текущий статус задачи Celery
+        и результат в случае завершения
+        :param task_id: Id задачи
+        """
         task = get_task(task_id)
         return jsonify({'status': task.status,
                         'url': f'/processed/{task.result}'})
-        # result = task.result or b''
-        #
-        # # Конвертирование в Base64
-        # # результат работы задачи в Celery декодируется в строку
-        # # с использованием кодировки utf-8, чтобы его можно было вернуть в JSON.
-        # if isinstance(result, bytes):
-        #     result = base64.b64encode(result).decode('utf-8')
-        #
-        # return jsonify({'status': task.status,
-        #                 'result': result})
-
 
     def post(self):
         """
-        Загружает изображение и ставит задачу на апскейлинг в Celery
+        Загружает исходное изображение и ставит задачу на апскейлинг в Celery
         """
 
         if 'image' not in request.files:
@@ -70,15 +68,16 @@ class UpscaleImage(MethodView):
             return jsonify({"error": "Неверный формат изображения"}), 400
 
         in_memory_file = BytesIO()
-        image.save(in_memory_file) # Читаем содержимое файла сразу в память
+        image.save(in_memory_file)  # Читаем содержимое файла сразу в память
         in_memory_file.seek(0)  # Сброс указателя в начало файла
         image_data = in_memory_file.read()  # Чтение данных из BytesIO
 
-        try:
-            task = upscale_image.delay(image_data, ext)  # Запускаем задачу в Celery
+        try:  # Запускаем задачу в Celery
+            task = upscale_image.delay(image_data, ext)
             return jsonify({"task_id": task.id, "status": "processing"}), 202
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
 
 app.add_url_rule('/tasks/<string:task_id>',
                  view_func=UpscaleImage.as_view('task_status'),
