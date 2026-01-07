@@ -1,9 +1,12 @@
+import os
 from flask import Flask
 from flask import request
 from flask.views import MethodView
 from flask import jsonify
+from flask import send_from_directory
 from celery_app import celery_app, get_task, upscale_image
 from io import BytesIO
+from config import PROCESSED_FOLDER
 import base64
 
 app = Flask('app')
@@ -27,10 +30,10 @@ class GetImage(MethodView):
         Возвращает готовое апскейлированное изображение
         """
 
-        processed_path = os.path.join(OUTPUT_FOLDER, filename)
-        print(processed_path)
+        processed_path = os.path.join(PROCESSED_FOLDER, filename)
+        # print(processed_path)
         if os.path.exists(processed_path):
-            return send_file(processed_path, mimetype='image/jpeg')
+            return send_from_directory(PROCESSED_FOLDER, filename, as_attachment=True)
         else:
             return jsonify({'message': 'Processed image not found.'}), 404
 

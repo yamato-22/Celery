@@ -35,10 +35,25 @@ print(f'{status=}')
 # Сохраняем преобразованный файл из данных ответа POST запроса.
 if response.status_code == 200:
     print("Изображение успешно обработано, сохраняем...")
-    # Получаем изображение из JSON как строку Base64
-    base64_string = response.json()['result']
-    # Сохраняем полученное изображение
-    save_image(image_filename, base64_string)
+
+    link = response.json()['url']
+    ext = image_filename.rsplit('.', 1)[1].lower()
+    new_filename = f'{image_filename.split('.')[0]}_upscaled.{ext}'
+
+    # Получаем преобразованный файл
+    response = requests.get(link)
+    print(response.status_code)
+    if response.status_code == 200:
+
+        with open(f'{OUTPUT_FOLDER}{new_filename}', 'wb') as f:
+            f.write(response.content)
+
+        print("Обработанное изображение сохранено!")
+
+    # # Получаем изображение из JSON как строку Base64
+    # base64_string = response.json()['result']
+    # # Сохраняем полученное изображение
+    # save_image(image_filename, base64_string)
 
 #     # Декодируем Base64 строку в байты
 #     image_bytes = base64.b64decode(base64_string)

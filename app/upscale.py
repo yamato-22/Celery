@@ -2,7 +2,7 @@ import cv2
 from cv2 import dnn_superres
 import numpy as np
 import base64
-from config import MODEL_PATH
+from config import MODEL_PATH, PROCESSED_FOLDER
 import uuid
 import os
 
@@ -44,7 +44,7 @@ def upscale(input_data: bytes, ext="jpg"):
     processed_image = scaler.upsample(image)
 
     original_filename = f"{uuid.uuid4()}.{ext}"
-    image_path = os.path.join(app.config['PROCESSED_FOLDER'], original_filename)
+    image_path = os.path.join(PROCESSED_FOLDER, original_filename)
 
     cv2.imwrite(image_path, processed_image)
 
